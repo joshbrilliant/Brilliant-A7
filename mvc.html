@@ -1,0 +1,115 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">        
+        
+        <style>
+            .card
+            {
+                padding:100px;
+                margin:2px;
+                max-width:40%;
+                background-color:black;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="container">
+            <h3>Treasure Hunt</h3>
+            <div id="boxList" class="row"></div>
+            <div class="row"><h5>Guesses:</h5><h5 id="guesses"></h5></div>
+        </div>
+        
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>        
+        
+        <!--put your modal dialogs here...-->
+        <div id='newGame' class="modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header bg-dark text-light">
+                <h5 class="modal-title">Play Again?</h5>
+                <button id='end' type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Would you like to play again?</p>
+              </div>
+              <div class="modal-footer">
+                <button id='yes' type="button" class="btn btn-primary">Yes</button>
+                <button id='no' type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+              </div>
+            </div>
+          </div>
+        </div> 
+        
+        <script>
+        /* global $ */
+        $(document).ready(function() 
+        {
+            // model ....
+            let model = {};
+            
+            function initializeModel()
+            {
+                model.chests = 6;
+                model.isTreasure = Math.floor(Math.random() * Math.floor(model.chests));
+                model.guesses = 0;
+            }
+            
+            // view...
+            function updateView()
+            {
+                $('#boxList').empty();                
+                for (var i = 0; i < model.chests; i++) 
+                {
+                    let obj = $("<div></div>");
+                    obj.addClass("col-6 card");
+                    obj.attr("id",i.toString());
+                    $('#boxList').append(obj);
+                }
+            }
+            
+            // controller ...
+            $(document).ready(function(){$(".card").on({click: function()
+					{
+					    if(this.id != model.isTreasure)
+						    $(this).css("background-color", "red");
+						else
+						{
+						    $(this).css("background-color", "green");
+						    $('#newGame').modal('show');
+						}
+						model.guesses++;
+						$('#guesses').html(model.guesses);
+					}  
+				});
+				$('#yes').on({click: function() 
+                    {
+                        $('#newGame').modal('hide');
+                        window.location.reload();
+                    }
+				});
+				$('#no').on({click: function() 
+                    {
+                        $('#newGame').modal('hide');
+                        $(".card").off('click');
+                    }
+				});	
+				$('#end').on({click: function() 
+                    {
+                        $('#newGame').modal('hide');
+                        $(".card").off('click');
+                    }
+				});
+			});
+			
+            // run...
+            initializeModel();
+            updateView();
+        });
+        </script>
+    </body>
+</html>
