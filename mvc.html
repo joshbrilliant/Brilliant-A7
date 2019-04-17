@@ -3,21 +3,32 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">        
         
         <style>
-            .card
+            .col 
             {
-                padding:100px;
-                margin:2px;
-                max-width:40%;
-                background-color:black;
+                padding: 80px; 
+                border: 2px solid white;
+            }
+            .treasure
+            {
+                background-color: green;
+            }
+            .empty
+            {
+                background-color: red;
+            }
+            .notChecked 
+            {
+                background-color: black;
             }
         </style>
     </head>
     
     <body>
         <div class="container">
+            <!--Treasure hunt-->
             <h3>Treasure Hunt</h3>
-            <div id="boxList" class="row"></div>
-            <div class="row"><h5>Guesses:</h5><h5 id="guesses"></h5></div>
+            <div class='row' id = 'chestsList'></div>
+            <h5>Guesses: </h5><h5 id='guesses'></h5>
         </div>
         
         <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -25,12 +36,12 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>        
         
         <!--put your modal dialogs here...-->
-        <div id='newGame' class="modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+        <div id='confirm' class="modal" tabindex="-1" role="dialog">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header bg-dark text-light">
                 <h5 class="modal-title">Play Again?</h5>
-                <button id='end' type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
@@ -43,7 +54,7 @@
               </div>
             </div>
           </div>
-        </div> 
+        </div>                
         
         <script>
         /* global $ */
@@ -54,62 +65,104 @@
             
             function initializeModel()
             {
-                model.chests = 6;
-                model.isTreasure = Math.floor(Math.random() * Math.floor(model.chests));
+                model.size = 6;
+                
+                model.guess = 0;
+                model.empty = -1;
+                model.chests = [];
+                model.randomTreasure = Math.floor(Math.random() * model.size);
                 model.guesses = 0;
+                for (var i = 0; i < model.size; i++) 
+                {
+                    if (i == model.randomTreasure)
+                    {
+                        model.chests.push({ id: i, ans: true, click: false});
+                    }
+                    else
+                    {
+                        model.chests.push({ id: i, ans: false, click: false});
+                    }
+                }
             }
             
             // view...
             function updateView()
             {
-                $('#boxList').empty();                
-                for (var i = 0; i < model.chests; i++) 
+                $('#chestsList').empty();   
+                var num = 1;
+                for (var i in model.chests)
                 {
-                    let obj = $("<div></div>");
-                    obj.addClass("col-6 card");
-                    obj.attr("id",i.toString());
-                    $('#boxList').append(obj);
+                    let item = $("<div class ='col'></div>");
+                    item.attr("id", model.chests[i].id);
+                    item.addClass("chest");
+                    
+                    if (model.chests[i].ans)
+                    {
+                        item.addClass("found");
+                    }
+                    
+                    if (model.chests[i].click) 
+                    {
+                        if (model.chests[i].ans)
+                        {
+                            item.addClass("treasure");
+                        }
+                        else
+                        {
+                            item.addClass("empty");
+                        }
+                    }
+                    else
+                    {
+                        item.addClass("notChecked");
+                    }
+                    
+                    $('#chestsList').append(item);
+                    
+                    if (num % 2 == 0)
+                    {
+                        $('#chestsList').append("<div class='w-100'></div>");
+                    }
+                    num++;
                 }
-            }
+                $('#guesses').empty();
+                $('#guesses').append(model.guesses);
+            }            
             
             // controller ...
-            $(document).ready(function(){$(".card").on({click: function()
-					{
-					    if(this.id != model.isTreasure)
-						    $(this).css("background-color", "red");
-						else
-						{
-						    $(this).css("background-color", "green");
-						    $('#newGame').modal('show');
-						}
-						model.guesses++;
-						$('#guesses').html(model.guesses);
-					}  
-				});
-				$('#yes').on({click: function() 
-                    {
-                        $('#newGame').modal('hide');
-                        window.location.reload();
-                    }
-				});
-				$('#no').on({click: function() 
-                    {
-                        $('#newGame').modal('hide');
-                        $(".card").off('click');
-                    }
-				});	
-				$('#end').on({click: function() 
-                    {
-                        $('#newGame').modal('hide');
-                        $(".card").off('click');
-                    }
-				});
-			});
-			
+            
+            $(document).on("click",".chest",function() 
+            {
+                model.chests[$(this).attr("id")].click = true;
+                model.guesses = model.guesses + 1;
+                updateView();
+            });
+            
+            $(document).on("click",".found",function() 
+            {
+                $('#confirm').modal('show');
+                updateView();
+            });
+            
+            $('#yes').click(function() 
+            {
+                initializeModel();
+                $('#confirm').modal('hide');
+                updateView();
+            });
+            
+            $('#no').click(function() 
+            {
+                $('#confirm').modal('hide');
+                updateView();
+                $(':input').attr('disabled', 'disabled');
+            });
+            
             // run...
             initializeModel();
             updateView();
         });
+        
         </script>
     </body>
 </html>
